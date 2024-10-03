@@ -7,17 +7,12 @@ output "disk_name" {
 }
 
 # Output the mount command
-output "mount_command" {
-  value = <<-EOT
-    #!/bin/bash
-    DISK_NAME="/dev/disk/by-id/google-${google_compute_disk.disk.name}"
-    MOUNT_POINT="/mnt/disks/${google_compute_disk.disk.name}"
-
-    # Create the mount point and mount the disk
-    sudo mkdir -p ${MOUNT_POINT}
-    sudo mount -o discard,defaults ${DISK_NAME} ${MOUNT_POINT}
-
-    # Add the disk to /etc/fstab for auto-mount on reboot
-    echo "${DISK_NAME} ${MOUNT_POINT} ext4 discard,defaults 1 1" | sudo tee -a /etc/fstab
-  EOT
+# Output the disk mount logic
+output "disk_mount_command" {
+  value = <<EOT
+sudo mkfs.ext4 -F /dev/disk/by-id/google-${google_compute_disk.disk.name} && \
+sudo mkdir -p /mnt/disks/${google_compute_disk.disk.name} && \
+sudo mount -o discard,defaults /dev/disk/by-id/google-${google_compute_disk.disk.name} /mnt/disks/${google_compute_disk.disk.name} && \
+echo '/dev/disk/by-id/google-${google_compute_disk.disk.name} /mnt/disks/${google_compute_disk.disk.name} ext4 discard,defaults 1 1' | sudo tee -a /etc/fstab
+EOT
 }
